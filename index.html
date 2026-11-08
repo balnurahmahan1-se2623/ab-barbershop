@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best Barbershop - Online Booking</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: #1a1512 url('13.jpg') no-repeat center center; background-size: cover; padding: 20px; }
+        
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18, 14, 12, 0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .auth-card { background: #1c1816; color: #f5f0eb; width: 380px; padding: 40px 30px; border-radius: 16px; text-align: center; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 102, 178, 0.2); display: flex; flex-direction: column; align-items: center; }
+        .g_id_signin { display: flex; justify-content: center; width: 100%; margin-top: 15px; }
+        .auth-logo { width: 65px; height: 65px; border-radius: 50%; background: rgba(20, 16, 14, 0.9); border: 2px solid #ff66b2; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; font-size: 26px; color: #ff66b2; box-shadow: 0 0 12px rgba(255, 102, 178, 0.3); }
+        .auth-title { font-size: 24px; font-weight: 700; margin-bottom: 5px; color: #ffffff; }
+        .auth-title span { color: #ff66b2; text-shadow: 0 0 8px rgba(255, 102, 178, 0.5); } 
+        .auth-subtitle { font-size: 13px; color: #a89e95; margin-bottom: 25px; }
+        #g_id_onload { display: flex; justify-content: center; margin-top: 15px; }
+        
+        .divider { display: flex; align-items: center; text-align: center; margin: 25px 0 15px 0; color: #a89e95; font-size: 12px; width: 100%; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .divider::before { margin-right: 10px; } .divider::after { margin-left: 10px; }
+        .custom-login-form { display: flex; flex-direction: column; width: 100%; gap: 12px; }
+        .custom-input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.2); color: #fff; font-size: 13px; outline: none; transition: 0.3s; }
+        .custom-input:focus { border-color: #ff66b2; box-shadow: 0 0 8px rgba(255, 102, 178, 0.3); background: rgba(0, 0, 0, 0.4); }
+        .custom-btn { background: #ff66b2; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; }
+        .custom-btn:hover { background: #e64d99; box-shadow: 0 0 15px rgba(255, 102, 178, 0.5); }
+
+        .hamburger-icon { position: fixed; top: 20px; right: 25px; width: 50px; height: 50px; font-size: 24px; cursor: pointer; color: #fff; background: #1c1816; border: 2px solid #ff66b2; border-radius: 50%; z-index: 1000; display: none; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: 0.3s; }
+        .hamburger-icon:hover { background: #ff66b2; transform: scale(1.05); }
+        .side-menu { position: fixed; top: 0; right: -300px; width: 300px; height: 100vh; background: #fff; box-shadow: -5px 0 20px rgba(0,0,0,0.3); transition: right 0.4s ease; padding: 20px; z-index: 2000; display: flex; flex-direction: column; overflow-y: auto; }
+        .side-menu.active { right: 0; }
+        .close-menu { text-align: right; font-size: 28px; cursor: pointer; color: #555; margin-bottom: 10px; line-height: 1; transition: 0.3s; }
+        .close-menu:hover { color: #e03131; }
+
+        .menu-profile { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .menu-avatar { font-size: 40px; margin-bottom: 5px; }
+        .menu-email { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 10px; word-break: break-all; }
+        
+        .menu-action-btn { width: 100%; background: #111; color: #fff; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: 0.3s; text-align: center; text-decoration: none; display: block; }
+        .menu-action-btn:hover { background: #ff66b2; box-shadow: 0 0 10px rgba(255, 102, 178, 0.4); }
+        .delete-acc-btn { background: #fff; color: #e03131; border: 1px solid #e03131; }
+        .delete-acc-btn:hover { background: #e03131; color: #fff; box-shadow: none; }
+        
+        .admin-main-btn { background: #d6336c; } 
+        .admin-sub-btn { background: #ff66b2; font-size: 11px; padding: 8px; margin-bottom: 5px; }
+        .admin-options { display: none; margin-top: 10px; padding-left: 15px; border-left: 2px solid #ff66b2; } 
+
+        .lang-switch { display: flex; justify-content: space-between; margin-bottom: 20px; background: #f1f1f1; border-radius: 8px; padding: 5px; }
+        .lang-btn { flex: 1; padding: 8px; border: none; background: transparent; cursor: pointer; font-size: 12px; font-weight: bold; border-radius: 6px; color: #555; }
+        .lang-btn.active { background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #ff66b2; }
+        
+        .map-container { display: none; margin-bottom: 15px; border-radius: 12px; background: #f9f9f9; padding: 12px; border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .map-address-text { font-size: 12px; font-weight: 600; color: #333; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .map-address-text span { display: flex; align-items: center; gap: 6px; }
+        .copy-btn { background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .copy-btn:hover { background: #e0e0e0; }
+        .copy-btn svg { stroke: #666; transition: 0.3s; }
+        .copy-btn:hover svg { stroke: #ff66b2; }
+
+        .iot-panel { background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee; display: none; }
+        .chair { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px solid #f1f1f1; }
+        .chair:last-child { border-bottom: none; }
+        .available { color: #2b8a3e; font-weight: bold; }
+        .busy { color: #e03131; font-weight: bold; }
+
+        /* Контейнерге скролл қосылды, экранға сыймаған қызметтер төмен айналады */
+        .main-container { display: none; background: rgba(255, 228, 233, 0.95); width: 450px; max-height: 90vh; overflow-y: auto; padding: 30px 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; }
+        
+        /* Скролл дизайны */
+        .main-container::-webkit-scrollbar { width: 6px; }
+        .main-container::-webkit-scrollbar-track { background: rgba(255, 102, 178, 0.1); border-radius: 10px; }
+        .main-container::-webkit-scrollbar-thumb { background: #ff66b2; border-radius: 10px; }
+
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
+
+        .header-bar { display: flex; align-items: center; margin-bottom: 25px; }
+        .back-icon { font-size: 22px; cursor: pointer; color: #333; margin-right: 15px; font-weight: bold; transition: 0.3s; }
+        .back-icon:hover { color: #ff66b2; }
+        .header-title { font-size: 20px; font-weight: bold; color: #111; flex: 1; text-align: center; margin-right: 25px; }
+
+        .subtitle { text-align: center; font-size: 12px; color: #666; margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #222; margin-top: 15px; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; background: #fff; outline: none; transition: 0.3s ease; }
+        input:focus, select:focus { border-color: #ff66b2; box-shadow: 0 0 8px rgba(255, 102, 178, 0.4); }
+        
+        select option { color: #111; font-weight: bold; }
+        select option:disabled { color: #aaa; font-weight: normal; background: #f9f9f9; }
+
+        .book-btn { width: 100%; background: #111; color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: all 0.4s ease; }
+        .book-btn:hover { background: #ff66b2; box-shadow: 0 0 20px rgba(255, 102, 178, 0.8); transform: scale(1.02); }
+
+        .specialist-card { display: flex; align-items: center; background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #ddd; cursor: pointer; transition: 0.3s; }
+        .specialist-card:hover { border-color: #ff66b2; box-shadow: 0 4px 10px rgba(255,102,178,0.2); }
+        .specialist-card.selected { border-color: #ff66b2; background: rgba(255, 102, 178, 0.05); }
+        .spec-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid #f0f0f0; }
+        .spec-info { flex: 1; }
+        .spec-name { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 3px; }
+        .spec-job { font-size: 13px; color: #666; margin-bottom: 3px; }
+        .spec-rating { color: #f59f00; font-size: 12px; font-weight: bold;}
+        .spec-reviews { color: #888; font-size: 11px; margin-left: 5px; font-weight: normal;}
+        
+        .radio-circle { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; display: flex; justify-content: center; align-items: center; }
+        .specialist-card.selected .radio-circle { border-color: #ff66b2; }
+        .specialist-card.selected .radio-circle::after { content: ''; width: 12px; height: 12px; background: #ff66b2; border-radius: 50%; }
+
+        .confirmation-card { display: none; background: rgba(255, 228, 233, 0.96); width: 420px; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .confirmation-card h2 { color: #6741d9; margin-bottom: 8px; font-size: 20px; }
+        .barber-photo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 10px auto; border: 3px solid #fff; display: block; }
+        .confirm-details { background: #fff; padding: 12px; border-radius: 8px; margin: 10px 0; text-align: left; font-size: 13px; line-height: 1.6; border: 1px solid #f3c2cb; }
+        .waiting-text { color: #e8590c; font-weight: 700; margin: 10px 0; font-size: 14px; }
+        .cancel-btn { width: 100%; background: #e03131; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        
+        .voice-btn { position: fixed; bottom: 20px; right: 20px; background: #ff66b2; color: white; border: none; padding: 12px 20px; border-radius: 50px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 102, 178, 0.5); z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <button id="voiceBtn" class="voice-btn" type="button">🔊 Voice Guide</button>
+
+    <div class="hamburger-icon" id="menuBtn" onclick="toggleMenu()">☰</div>
+    <div class="side-menu" id="sideMenu">
+        <div class="close-menu" onclick="toggleMenu()">×</div>
+
+        <div class="lang-switch">
+            <button class="lang-btn active" onclick="changeLang('kz', event)">KZ</button>
+            <button class="lang-btn" onclick="changeLang('ru', event)">RU</button>
+            <button class="lang-btn" onclick="changeLang('en', event)">EN</button>
+        </div>
+
+        <div class="menu-profile">
+            <div class="menu-avatar">👤</div>
+            <div class="menu-email" id="displayGoogleEmail"></div>
+            <button class="menu-action-btn delete-acc-btn" data-i18n="menu_logout" onclick="logoutGoogle()">Аккаунтты жою (Шығу)</button>
+        </div>
+
+        <button class="menu-action-btn" style="background:#f1f1f1; color:#333;" onclick="toggleMap()"><span data-i18n="menu_address">📍 Біздің мекенжай</span></button>
+        <div class="map-container" id="mapContainer">
+            <div class="map-address-text">
+                <span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#d6336c;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <span id="addressText" data-i18n="address_exact">Астана қ., Мәңгілік Ел даңғылы, С1</span>
+                </span>
+                <button onclick="copyAddress()" class="copy-btn" title="Копировать">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </button>
+            </div>
+            <iframe src="https://maps.google.com/maps?q=Astana%20IT%20University,%20EXPO%20C1,%20Astana&t=&z=16&ie=UTF8&iwloc=&output=embed" width="100%" height="160" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+
+        <button class="menu-action-btn" onclick="toggleStatusPanel()" data-i18n="menu_status">💺 Live Chair Status</button>
+        <div class="iot-panel" id="menuIotPanel">
+            <div class="chair"><span>1. Balnur</span><span id="status-1" class="available">Available</span></div>
+            <div class="chair"><span>2. Tamila</span><span id="status-2" class="available">Available</span></div>
+            <div class="chair"><span>3. Indira</span><span id="status-3" class="available">Available</span></div>
+            <div class="chair"><span>4. Ailin</span><span id="status-4" class="available">Available</span></div>
+            <div id="sensorTime" style="font-size:10px; margin-top:8px; text-align:right; color:#777;">Waiting for data...</div>
+        </div>
+
+        <div id="adminGroup" style="display: none;">
+            <button class="menu-action-btn admin-main-btn" onclick="toggleAdminOptions()" data-i18n="menu_admin">⚙️ Админ</button>
+            <div class="admin-options" id="adminOptions">
+                <a href="admin.php?return=admin" class="menu-action-btn admin-sub-btn" data-i18n="menu_admin_panel">Админ панель</a>
+                <a href="statistics.php?return=admin" class="menu-action-btn admin-sub-btn" data-i18n="menu_stats">Статистика</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-overlay" id="authScreen">
+        <div class="auth-card">
+            <div class="auth-logo">✓</div>
+            <div class="auth-title">Best<span>Barbershop</span></div>
+            <div class="auth-subtitle" data-i18n="auth_subtitle">Онлайн брондау жүйесі</div>
+            <div id="g_id_onload" data-client_id="351420685203-rt39k4c3s42su2kip6jcistnugkddsjc.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
+            <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="sign_in_with" data-size="large" data-logo_alignment="left"></div>
+            
+            <div class="divider" data-i18n="or">НЕМЕСЕ</div>
+            <form class="custom-login-form" id="customLoginForm">
+                <input type="email" id="customEmail" class="custom-input" data-i18n-placeholder="email_placeholder" placeholder="Поштаңызды енгізіңіз" required>
+                <input type="password" id="customPassword" class="custom-input" data-i18n-placeholder="password_placeholder" placeholder="Құпия сөз" required>
+                <button type="submit" class="custom-btn" data-i18n="login_btn">Кіру</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="main-container" id="bookingScreen">
+        <form id="bookingForm">
+            
+            <div class="step active" id="step1">
+                <div class="header-bar">
+                    <div class="header-title" data-i18n="step1_title">Специалисті таңдау</div>
+                </div>
+                <p class="subtitle" data-i18n="main_subtitle2">Біз 9:00-ден 18:00-ге дейін жұмыс істейміз.</p>
+
+                <div class="specialist-card" onclick="selectBarber('1', this)"><img src="b.jpg" class="spec-avatar"><div class="spec-info"><div class="spec-name">Balnur</div><div class="spec-job" data-i18n="job_top">Топ-Барбер</div><div class="spec-rating" id="rating-1">★★★★★ <span class="spec-reviews" data-i18n="clients_word">Клиенттер: 0</span></div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectBarber('2', this)"><img src="t.jpg" class="spec-avatar"><div class="spec-info"><div class="spec-name">Tamila</div><div class="spec-job" data-i18n="job_barber">Барбер</div><div class="spec-rating" id="rating-2">★★★★★ <span class="spec-reviews" data-i18n="clients_word">Клиенттер: 0</span></div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectBarber('3', this)"><img src="i.jpg" class="spec-avatar"><div class="spec-info"><div class="spec-name">Indira</div><div class="spec-job" data-i18n="job_pro">Про-Барбер</div><div class="spec-rating" id="rating-3">★★★★★ <span class="spec-reviews" data-i18n="clients_word">Клиенттер: 0</span></div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectBarber('4', this)"><img src="a.jpeg" class="spec-avatar"><div class="spec-info"><div class="spec-name">Ailin</div><div class="spec-job" data-i18n="job_master">Мастер</div><div class="spec-rating" id="rating-4">★★★★★ <span class="spec-reviews" data-i18n="clients_word">Клиенттер: 0</span></div></div><div class="radio-circle"></div></div>
+                
+                <input type="hidden" id="barberSelect">
+                <button type="button" class="book-btn" data-i18n="next_btn" onclick="nextStep(2)">Келесі</button>
+            </div>
+
+            <div class="step" id="step2">
+                <div class="header-bar"><div class="back-icon" onclick="prevStep(1)">⬅</div><div class="header-title" data-i18n="step2_title">Күн мен уақыт</div></div>
+                <label data-i18n="date_label">Күнді таңдаңыз:</label><input type="date" id="appointmentDate">
+                <label data-i18n="time_label">Уақытты таңдаңыз:</label>
+                <select id="appointmentTime">
+                    <option value="" data-i18n="time_default">-- Уақытты таңдау --</option>
+                    <option value="09:00">09:00 - 10:00</option><option value="10:00">10:00 - 11:00</option>
+                    <option value="11:00">11:00 - 12:00</option><option value="12:00">12:00 - 13:00</option>
+                    <option value="13:00">13:00 - 14:00</option><option value="14:00">14:00 - 15:00</option>
+                    <option value="15:00">15:00 - 16:00</option><option value="16:00">16:00 - 17:00</option>
+                    <option value="17:00">17:00 - 18:00</option>
+                </select>
+                <button type="button" class="book-btn" data-i18n="next_btn" onclick="nextStep(3)">Келесі</button>
+            </div>
+
+            <!-- ҚЫЗМЕТТЕР ТІЗІМІ (ЖАҢАРТЫЛҒАН ӘРІ 3 ЖАҢА ҚЫЗМЕТ ҚОСЫЛҒАН) -->
+            <div class="step" id="step3">
+                <div class="header-bar"><div class="back-icon" onclick="prevStep(2)">⬅</div><div class="header-title" data-i18n="step3_title">Қызметті таңдау</div></div>
+                
+                <div class="specialist-card" onclick="selectService('Haircut - 5000 ₸', this)"><div class="spec-info"><div class="spec-name" data-i18n="serv_haircut">Шаш қию</div><div class="spec-job" style="color:#d6336c; font-weight:bold;">5 000 ₸</div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectService('Beard Trim - 4000 ₸', this)"><div class="spec-info"><div class="spec-name" data-i18n="serv_beard">Сақал қыру</div><div class="spec-job" style="color:#d6336c; font-weight:bold;">4 000 ₸</div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectService('Hair Styling - 3500 ₸', this)"><div class="spec-info"><div class="spec-name" data-i18n="serv_styling">Шаш сәндеу</div><div class="spec-job" style="color:#d6336c; font-weight:bold;">3 500 ₸</div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectService('Full Complex - 8000 ₸', this)"><div class="spec-info"><div class="spec-name" data-i18n="serv_complex">Толық кешен</div><div class="spec-job" style="color:#d6336c; font-weight:bold;">8 000 ₸</div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectService('Kids Haircut - 3500 ₸', this)"><div class="spec-info"><div class="spec-name" data-i18n="serv_kids">Балалар шаш қиюы</div><div class="spec-job" style="color:#d6336c; font-weight:bold;">3 500 ₸</div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectService('Camouflage - 6000 ₸', this)"><div class="spec-info"><div class="spec-name" data-i18n="serv_camo">Камуфляж</div><div class="spec-job" style="color:#d6336c; font-weight:bold;">6 000 ₸</div></div><div class="radio-circle"></div></div>
+                <div class="specialist-card" onclick="selectService('Face Care - 3000 ₸', this)"><div class="spec-info"><div class="spec-name" data-i18n="serv_face">Бет күтімі</div><div class="spec-job" style="color:#d6336c; font-weight:bold;">3 000 ₸</div></div><div class="radio-circle"></div></div>
+                
+                <input type="hidden" id="serviceSelect"><button type="button" class="book-btn" data-i18n="next_btn" onclick="nextStep(4)">Келесі</button>
+            </div>
+
+            <div class="step" id="step4">
+                <div class="header-bar"><div class="back-icon" onclick="prevStep(3)">⬅</div><div class="header-title" data-i18n="step4_title">Сіздің мәліметтеріңіз</div></div>
+                <label data-i18n="name_label">Атыңыз:</label><input type="text" id="customerName" data-i18n-placeholder="name_placeholder" placeholder="Есіміңізді жазыңыз" required>
+                <label data-i18n="phone_label">Телефон нөмірі:</label><input type="tel" id="customerPhone" placeholder="+7 777 000 00 00" value="+7" pattern="^\+7[0-9\s\-]+" required>
+                <button type="submit" class="book-btn" data-i18n="confirm_booking">Брондауды растау</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- РАСТАУ БЕТІ -->
+    <div class="confirmation-card" id="confirmationScreen">
+        <h2 id="confirmTitle" data-i18n="success_title">Сәтті өтті!</h2><img id="confirmPhoto" class="barber-photo" src="b.jpg">
+        <div class="confirm-details">
+            <div><b data-i18n="conf_email">Пошта:</b> <span id="confEmail"></span></div>
+            <div><b data-i18n="conf_name">Клиенттің аты:</b> <span id="confName"></span></div>
+            <div><b data-i18n="conf_phone">Телефон:</b> <span id="confPhone"></span></div>
+            <div><b data-i18n="conf_barber">Барбер:</b> <span id="confBarber"></span></div>
+            <div><b data-i18n="conf_service">Қызмет:</b> <span id="confService"></span></div>
+            <div><b data-i18n="conf_date">Күні:</b> <span id="confDate"></span></div>
+            <div><b data-i18n="conf_time">Уақыты:</b> <span id="confTime"></span></div>
+        </div>
+        <div class="waiting-text" data-i18n="waiting_text">Біз сізді күтеміз!</div>
+        <button type="button" class="cancel-btn" id="cancel_btn" data-i18n="cancel_btn">Броньды жою</button>
+    </div>
+
+    <script>
+        let currentGoogleEmail = ""; let currentLang = "kz"; 
+        const ADMIN_EMAILS = ["balnurahmahan1@gmail.com", "amangeldinatamila@gmail.com", "akhmethanovaaa@gmail.com"];
+
+        const translations = {
+            kz: { "auth_subtitle": "Онлайн брондау жүйесі", "or": "НЕМЕСЕ", "email_placeholder": "Поштаңызды енгізіңіз", "password_placeholder": "Құпия сөз", "login_btn": "Кіру", "menu_logout": "Аккаунтты жою (Шығу)", "menu_address": "📍 Біздің мекенжай", "address_exact": "Астана қ., Мәңгілік Ел даңғылы, С1", "copied_msg": "Мекенжай көшірілді!", "menu_status": "💺 Live Status", "menu_admin": "⚙️ Админ", "menu_admin_panel": "Админ панель", "menu_stats": "Статистика", "main_subtitle2": "Біз 9:00-ден 18:00-ге дейін жұмыс істейміз.", "step1_title": "Специалисті таңдау", "job_top": "Топ-Барбер", "job_barber": "Барбер", "job_pro": "Про-Барбер", "job_master": "Мастер", "clients_word": "Клиенттер: ", "next_btn": "Келесі", "step2_title": "Күн мен уақыт", "date_label": "Күнді таңдаңыз:", "time_label": "Уақытты таңдаңыз:", "time_default": "-- Уақытты таңдау --", "step3_title": "Қызметті таңдау", 
+            "serv_haircut": "Шаш қию", "serv_beard": "Сақал қыру", "serv_styling": "Шаш сәндеу", "serv_complex": "Толық кешен", "serv_kids": "Балалар шаш қиюы", "serv_camo": "Камуфляж", "serv_face": "Бет күтімі",
+            "step4_title": "Сіздің мәліметтеріңіз", "name_label": "Атыңыз:", "name_placeholder": "Есіміңізді жазыңыз", "phone_label": "Телефон нөмірі:", "confirm_booking": "Брондауды растау", "success_title": "Сәтті өтті!", "conf_email": "Пошта:", "conf_name": "Клиент:", "conf_phone": "Телефон:", "conf_barber": "Барбер:", "conf_service": "Қызмет:", "conf_date": "Күні:", "conf_time": "Уақыты:", "waiting_text": "Біз сізді күтеміз!", "cancel_btn": "Броньды жою", "status_avail": "Бос", "status_busy": "Бос емес" },
+            
+            ru: { "auth_subtitle": "Система бронирования", "or": "ИЛИ", "email_placeholder": "Ваша почта", "password_placeholder": "Пароль", "login_btn": "Войти", "menu_logout": "Выйти", "menu_address": "📍 Наш адрес", "address_exact": "г. Астана, пр. Мангилик Ел, С1", "copied_msg": "Скопировано!", "menu_status": "💺 Live Status", "menu_admin": "⚙️ Админ", "menu_admin_panel": "Админ панель", "menu_stats": "Статистика", "main_subtitle2": "Мы работаем с 9:00 до 18:00.", "step1_title": "Выбор специалиста", "job_top": "Топ-Барбер", "job_barber": "Барбер", "job_pro": "Про-Барбер", "job_master": "Мастер", "clients_word": "Клиентов: ", "next_btn": "Далее", "step2_title": "Дата и время", "date_label": "Дата:", "time_label": "Время:", "time_default": "-- Выберите --", "step3_title": "Услуга", 
+            "serv_haircut": "Стрижка", "serv_beard": "Оформление бороды", "serv_styling": "Укладка", "serv_complex": "Полный комплекс", "serv_kids": "Детская стрижка", "serv_camo": "Камуфляж седины", "serv_face": "Уход за лицом",
+            "step4_title": "Ваши данные", "name_label": "Имя:", "name_placeholder": "Ваше имя", "phone_label": "Телефон:", "confirm_booking": "Подтвердить", "success_title": "Успешно!", "conf_email": "Почта:", "conf_name": "Имя:", "conf_phone": "Телефон:", "conf_barber": "Барбер:", "conf_service": "Услуга:", "conf_date": "Дата:", "conf_time": "Время:", "waiting_text": "Ждем вас!", "cancel_btn": "Отменить", "status_avail": "Свободен", "status_busy": "Занят" },
+            
+            en: { "auth_subtitle": "Online booking", "or": "OR", "email_placeholder": "Your email", "password_placeholder": "Password", "login_btn": "Login", "menu_logout": "Logout", "menu_address": "📍 Location", "address_exact": "Astana, Mangilik El Ave, C1", "copied_msg": "Copied!", "menu_status": "💺 Live Status", "menu_admin": "⚙️ Admin", "menu_admin_panel": "Admin Panel", "menu_stats": "Statistics", "main_subtitle2": "We work 9:00 - 18:00.", "step1_title": "Choose specialist", "job_top": "Top Barber", "job_barber": "Barber", "job_pro": "Pro Barber", "job_master": "Master", "clients_word": "Clients: ", "next_btn": "Next", "step2_title": "Date & Time", "date_label": "Date:", "time_label": "Time:", "time_default": "-- Select --", "step3_title": "Service", 
+            "serv_haircut": "Haircut", "serv_beard": "Beard Trim", "serv_styling": "Hair Styling", "serv_complex": "Full Complex", "serv_kids": "Kids Haircut", "serv_camo": "Hair Camouflage", "serv_face": "Face Care",
+            "step4_title": "Your details", "name_label": "Name:", "name_placeholder": "Your name", "phone_label": "Phone:", "confirm_booking": "Confirm", "success_title": "Success!", "conf_email": "Email:", "conf_name": "Name:", "conf_phone": "Phone:", "conf_barber": "Barber:", "conf_service": "Service:", "conf_date": "Date:", "conf_time": "Time:", "waiting_text": "See you soon!", "cancel_btn": "Cancel", "status_avail": "Available", "status_busy": "Busy" }
+        };
+
+        function changeLang(lang, event) {
+            currentLang = lang; document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active');
+            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if(translations[lang][key]) el.textContent = translations[lang][key]; });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if(translations[lang][key]) el.placeholder = translations[lang][key]; });
+            fetchChairStatus();
+            fetchBarberRatings();
+        }
+        function copyAddress() { navigator.clipboard.writeText(document.getElementById("addressText").textContent).then(() => alert(translations[currentLang].copied_msg)); }
+        function toggleMenu() { document.getElementById('sideMenu').classList.toggle('active'); }
+        function toggleStatusPanel() { let p = document.getElementById('menuIotPanel'); p.style.display = (p.style.display === 'block') ? 'none' : 'block'; }
+        function toggleMap() { let m = document.getElementById('mapContainer'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+        function toggleAdminOptions() { let opt = document.getElementById('adminOptions'); opt.style.display = (opt.style.display === 'block') ? 'none' : 'block'; }
+
+        function selectBarber(id, el) { document.querySelectorAll('#step1 .specialist-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); document.getElementById('barberSelect').value = id; }
+        function selectService(val, el) { document.querySelectorAll('#step3 .specialist-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); document.getElementById('serviceSelect').value = val; }
+        
+        function nextStep(step) {
+            if(step === 2 && !document.getElementById('barberSelect').value) return alert(translations[currentLang].step1_title);
+            if(step === 3 && (!document.getElementById('appointmentDate').value || !document.getElementById('appointmentTime').value)) return alert(translations[currentLang].step2_title);
+            if(step === 4 && !document.getElementById('serviceSelect').value) return alert(translations[currentLang].step3_title);
+            
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); 
+            document.getElementById('step' + step).classList.add('active');
+
+            if (step === 2) { updateTimeSlots(); }
+        }
+        function prevStep(step) { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById('step' + step).classList.add('active'); }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let td = new Date(); let ts = td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0') + '-' + String(td.getDate()).padStart(2, '0');
+            let md = new Date(); md.setMonth(md.getMonth() + 3); let ms = md.getFullYear() + '-' + String(md.getMonth() + 1).padStart(2, '0') + '-' + String(md.getDate()).padStart(2, '0');
+            let di = document.getElementById("appointmentDate"); 
+            di.setAttribute('min', ts); 
+            di.setAttribute('max', ms); 
+            
+            di.addEventListener('change', updateTimeSlots); 
+            
+            fetchChairStatus(); setInterval(fetchChairStatus, 10000);
+            fetchBarberRatings();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.get('return') === 'admin') { loginProcess(ADMIN_EMAILS[0]); }
+        });
+
+        function updateTimeSlots() {
+            let dateInput = document.getElementById("appointmentDate").value;
+            let timeSelect = document.getElementById("appointmentTime");
+            let barberId = document.getElementById("barberSelect").value;
+            
+            if (!dateInput || !barberId) return;
+
+            for (let i = 0; i < timeSelect.options.length; i++) {
+                if (timeSelect.options[i].value !== "") { timeSelect.options[i].disabled = false; }
+            }
+
+            let td = new Date(); 
+            let tStr = td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0') + '-' + String(td.getDate()).padStart(2, '0');
+            let ch = td.getHours();
+            
+            if (dateInput === tStr) {
+                for (let i = 0; i < timeSelect.options.length; i++) {
+                    let opt = timeSelect.options[i];
+                    if (opt.value !== "") {
+                        let oh = parseInt(opt.value.split(":")[0]);
+                        if (oh <= ch) opt.disabled = true;
+                    }
+                }
+            }
+
+            fetch('connect.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get_booked_times', barberId: barberId, date: dateInput }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    let bookedTimes = data.booked_times;
+                    for (let i = 0; i < timeSelect.options.length; i++) {
+                        let opt = timeSelect.options[i];
+                        if (bookedTimes.includes(opt.value)) { opt.disabled = true; }
+                    }
+                    if (timeSelect.options[timeSelect.selectedIndex] && timeSelect.options[timeSelect.selectedIndex].disabled) { timeSelect.value = ""; }
+                }
+            }).catch(e => console.log(e));
+        }
+
+        function fetchBarberRatings() {
+            fetch('connect.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'get_ratings' }) })
+            .then(res => res.json()).then(data => {
+                if (data.status === 'success') {
+                    let ratings = data.ratings;
+                    let maxClients = Math.max(...Object.values(ratings));
+                    if (maxClients === 0) maxClients = 1; 
+                    
+                    for (let i = 1; i <= 4; i++) {
+                        let clients = ratings[i] || 0;
+                        let starCount = Math.round((clients / maxClients) * 5); 
+                        if (starCount < 3) starCount = 3; 
+                        if (clients === 0) starCount = 0; 
+                        
+                        let starsHtml = '★'.repeat(starCount) + '☆'.repeat(5 - starCount);
+                        let clientWord = translations[currentLang].clients_word;
+                        document.getElementById('rating-' + i).innerHTML = `${starsHtml} <span class="spec-reviews">${clientWord}${clients}</span>`;
+                    }
+                }
+            }).catch(e => console.log(e));
+        }
+
+        function fetchChairStatus() {
+            fetch('status.php').then(res => res.json()).then(data => {
+                if (data.status === 'success') {
+                    let busyIds = data.busy_barbers.map(String); 
+                    for (let i = 1; i <= 4; i++) {
+                        let span = document.getElementById('status-' + i);
+                        if (busyIds.includes(String(i))) { span.textContent = translations[currentLang].status_busy; span.className = "busy"; } 
+                        else { span.textContent = translations[currentLang].status_avail; span.className = "available"; }
+                    }
+                    document.getElementById("sensorTime").textContent = "Last sync: " + new Date().toLocaleTimeString();
+                }
+            }).catch(e => console.log(e));
+        }
+
+        function handleCredentialResponse(res) { loginProcess(parseJwt(res.credential).email); }
+        document.getElementById('customLoginForm').addEventListener('submit', function(e) { e.preventDefault(); loginProcess(document.getElementById('customEmail').value.trim()); });
+        function loginProcess(email) {
+            currentGoogleEmail = email; document.getElementById('displayGoogleEmail').textContent = email;
+            if (ADMIN_EMAILS.includes(email)) document.getElementById('adminGroup').style.display = 'block'; 
+            else document.getElementById('adminGroup').style.display = 'none';
+            document.getElementById('menuBtn').style.display = 'flex'; document.getElementById('authScreen').style.display = 'none'; document.getElementById('bookingScreen').style.display = 'block';
+        }
+        function parseJwt(token) { return JSON.parse(decodeURIComponent(window.atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('0' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); }
+        function logoutGoogle() { currentGoogleEmail = ""; document.getElementById('bookingScreen').style.display = 'none'; document.getElementById('confirmationScreen').style.display = 'none'; document.getElementById('sideMenu').classList.remove('active'); document.getElementById('menuBtn').style.display = 'none'; document.getElementById('authScreen').style.display = 'flex'; document.getElementById('customLoginForm').reset(); document.getElementById('bookingForm').reset(); prevStep(1); }
+
+        document.getElementById('voiceBtn').addEventListener('click', function() {
+            if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); this.innerHTML = "🔊 Voice Guide"; } 
+            else { let s = new SpeechSynthesisUtterance("Welcome to Best Barbershop. Follow the steps to book your appointment online."); s.lang = 'en-US'; s.rate = 0.9; s.onend = () => this.innerHTML = "🔊 Voice Guide"; window.speechSynthesis.speak(s); this.innerHTML = "🔇 Stop Guide"; }
+        });
+
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let name = document.getElementById('customerName').value.trim(), phone = document.getElementById('customerPhone').value.trim();
+            if (!phone.startsWith('+7')) { alert("+7!"); return; }
+            let service = document.getElementById('serviceSelect').value, barberId = document.getElementById('barberSelect').value, date = document.getElementById('appointmentDate').value, time = document.getElementById('appointmentTime').value;
+            let td = new Date(); let ts = td.getFullYear() + '-' + String(td.getMonth() + 1).padStart(2, '0') + '-' + String(td.getDate()).padStart(2, '0');
+            if (date === ts && parseInt(time.split(':')[0]) <= td.getHours()) { alert("Өтіп кеткен уақыт!"); return; }
+
+            fetch('connect.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name, email: currentGoogleEmail, phone: phone, service: service, barberId: barberId, date: date, time: time }) })
+            .then(res => res.json()).then(data => {
+                if (data.status === 'success') {
+                    let bName = "Balnur", bImg = "b.jpg";
+                    if (barberId === "2") { bName = "Tamila"; bImg = "t.jpg"; } if (barberId === "3") { bName = "Indira"; bImg = "i.jpg"; } if (barberId === "4") { bName = "Ailin"; bImg = "a.jpeg"; }
+                    document.getElementById('confirmPhoto').src = bImg; document.getElementById('confEmail').textContent = currentGoogleEmail; document.getElementById('confName').textContent = name; document.getElementById('confPhone').textContent = phone; document.getElementById('confBarber').textContent = bName; document.getElementById('confService').textContent = service; document.getElementById('confDate').textContent = date; document.getElementById('confTime').textContent = time;
+                    document.getElementById('bookingScreen').style.display = 'none'; document.getElementById('confirmationScreen').style.display = 'block'; 
+                    fetchChairStatus();
+                    fetchBarberRatings(); 
+                } else alert(data.message);
+            }).catch(err => alert("Қате: " + err));
+        });
+
+        document.getElementById('cancel_btn').addEventListener('click', function() {
+            if (confirm('Броньды жоясыз ба?')) {
+                fetch('connect.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'cancel_booking', email: currentGoogleEmail }) })
+                .then(res => res.json()).then(data => {
+                    if (data.status === "success") { 
+                        document.getElementById('bookingForm').reset(); 
+                        document.getElementById('customerPhone').value = "+7"; 
+                        document.getElementById('confirmationScreen').style.display = 'none'; 
+                        document.getElementById('bookingScreen').style.display = 'block'; 
+                        prevStep(1); 
+                        fetchChairStatus(); 
+                        fetchBarberRatings(); 
+                    } 
+                    else alert(data.message);
+                }).catch(err => alert("Сервер қатесі"));
+            }
+        });
+    </script>
+</body>
+</html>
